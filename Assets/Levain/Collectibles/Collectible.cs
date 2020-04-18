@@ -6,7 +6,9 @@ public enum CollectibleType {
    None,
    Flour,
    Water,
-   Levain
+   Levain,
+   Dough,
+   Bread,
 }
 
 public class Collectible : MonoBehaviour {
@@ -23,6 +25,10 @@ public class Collectible : MonoBehaviour {
          mesh.material = materials[1];
       } else if (type == CollectibleType.Levain) {
          mesh.material = materials[2];
+      } else if (type == CollectibleType.Dough) {
+         mesh.material = materials[3];
+      } else if (type == CollectibleType.Bread) {
+         mesh.material = materials[4];
       }
    }
 

@@ -8,8 +8,11 @@ enum TransitionParameter {
 }
 
 public class PlayerController : MonoBehaviour {
-   public GameObject Player;
-   public LevainScript Levain;
+   public GameObject player;
+   public LevainScript levain;
+   public DoughMaker doughMaker;
+   public Hoven hoven;
+   public Counter counter;
 
    private PlayerInputActions inputActions;
    private Vector2 movementInput;
@@ -23,6 +26,8 @@ public class PlayerController : MonoBehaviour {
    private Quaternion currentRotation;
    private Animator animator;
 
+   [Header("Money")]
+   public float money = 100.0f;
    [Header("Picking Up")]
    public bool canPickUp;
    public GameObject Pickable;
@@ -36,13 +41,23 @@ public class PlayerController : MonoBehaviour {
    [Header("Feeding")]
    public bool canFeed;
    public bool canCollect;
+   [Header("Bread Making")]
+   public bool canAddIngredient;
+   public bool canCollectDough;
+   public bool canPutDoughHoven;
+   public bool canCollectBread;
+   [Header("Counter")]
+   public bool canSell;
 
    //HUD
    public HUDScript Hud;
 
    void Start() {
-      Player = gameObject;
-      Levain = GameObject.FindObjectOfType<LevainScript>();
+      player = gameObject;
+      levain = GameObject.FindObjectOfType<LevainScript>();
+      doughMaker = GameObject.FindObjectOfType<DoughMaker>();
+      hoven = GameObject.FindObjectOfType<Hoven>();
+      counter = GameObject.FindObjectOfType<Counter>();
       Hud = GameObject.FindObjectOfType<HUDScript>();
    }
 
@@ -56,14 +71,24 @@ public class PlayerController : MonoBehaviour {
    void Update() {
       if (canPickUp && !isHolding) {
          PickUp();
-      } else if (!canFeed && isHolding) {
+      } else if (!canFeed && !canAddIngredient && !canPutDoughHoven && !canSell && isHolding) {
          PutDown();
       } else if (canFeed) {
          Feeding();
       } else if (canOrder && Input.GetKeyDown(KeyCode.E)) {
          Dispenser.GetComponent<Dispenser>().Dispense();
       } else if (canCollect) {
-         Collecting();
+         CollectingLevain();
+      } else if (canCollectDough) {
+         CollectingDough();
+      } else if (canAddIngredient) {
+         AddIngredient();
+      } else if (canPutDoughHoven) {
+         PutDoughHoven();
+      } else if (canCollectBread) {
+         CollectingBread();
+      } else if (canSell) {
+         SellBread();
       }
    }
 
@@ -116,30 +141,66 @@ public class PlayerController : MonoBehaviour {
    }
 
    private void OnTriggerEnter(Collider other) {
-      Collectible collectible = other.GetComponent<Collectible>();
-      LevainScript levain = other.GetComponent<LevainScript>();
-      Dispenser dispenser = other.GetComponent<Dispenser>();
+      Collectible collectibleCol = other.GetComponent<Collectible>();
+      LevainScript levainCol = other.GetComponent<LevainScript>();
+      DoughMaker doughMakerCol = other.GetComponent<DoughMaker>();
+      Hoven hovenCol = other.GetComponent<Hoven>();
+      Dispenser dispenserCol = other.GetComponent<Dispenser>();
+      Counter counterCol = other.GetComponent<Counter>();
 
-      if (levain != null) {
+      //LEVAIN
+      if (levainCol != null) {
          if (isHolding) {
             canFeed = true;
-            Hud.OpenLevainPanel("Press E to feed");
+            Hud.OpenLevainPanel("Press E to feed " + currentCollectibeType);
          } else {
-            Hud.OpenLevainPanel("Press E to collect");
+            Hud.OpenLevainPanel("Press E to collect starter");
             canCollect = true;
          }
       }
 
-      if (collectible != null) {
-         Pickable = collectible.gameObject;
-         canPickUp = true;
-         Hud.OpenPickUpPanel(collectible.type.ToString());
+      //DOUGH
+      if (doughMakerCol != null) {
+         if (isHolding) {
+            canAddIngredient = true;
+            Hud.OpenBreadMakerPanel("Press E to add " + currentCollectibeType);
+         } else {
+            Hud.OpenBreadMakerPanel("Press E to collect dough");
+            canCollectDough = true;
+         }
       }
 
-      if (dispenser != null) {
-         Dispenser = dispenser.gameObject;
+      //HOVEN
+      if (hovenCol != null) {
+         if (isHolding) {
+            canPutDoughHoven = true;
+            Hud.OpenHovenMakerPanel("Press E to add bread");
+         } else {
+            Hud.OpenHovenMakerPanel("Press E to collect bread");
+            canCollectBread = true;
+         }
+      }
+
+      //COUNTER
+      if (counterCol != null) {
+         if (isHolding) {
+            canSell = true;
+            Hud.OpenCounterPanel();
+         }
+      }
+
+      //COLLECT
+      if (collectibleCol != null) {
+         Pickable = collectibleCol.gameObject;
+         canPickUp = true;
+         Hud.OpenPickUpPanel(collectibleCol.type.ToString());
+      }
+
+      //DISPENSER
+      if (dispenserCol != null) {
+         Dispenser = dispenserCol.gameObject;
          canOrder = true;
-         Hud.OpenDispenserPanel(dispenser.type.ToString());
+         Hud.OpenDispenserPanel(dispenserCol.type.ToString());
       }
 
    }
@@ -153,6 +214,14 @@ public class PlayerController : MonoBehaviour {
 
       canFeed = false;
       canCollect = false;
+
+      canAddIngredient = false;
+      canCollectDough = false;
+
+      canPutDoughHoven = false;
+      canCollectBread = false;
+
+      canSell = false;
       Hud.ClosePanels();
    }
 
@@ -177,9 +246,9 @@ public class PlayerController : MonoBehaviour {
    private void PutDown() {
       if (Input.GetKeyDown(KeyCode.E) && Holding != null && !canFeed) {
          //Place Object
-         Holding.transform.position = ((Player.transform.forward * 1f) + Player.transform.position) + new Vector3(0, 2, 0);
+         Holding.transform.position = ((player.transform.forward * 1f) + player.transform.position) + new Vector3(0, 2, 0);
          Holding.SetActive(true);
-         Holding.GetComponent<Rigidbody>().AddForce(Player.transform.forward * 1f, ForceMode.Impulse);
+         Holding.GetComponent<Rigidbody>().AddForce(player.transform.forward * 1f, ForceMode.Impulse);
 
          LetGo();
 
@@ -197,18 +266,53 @@ public class PlayerController : MonoBehaviour {
       moveSpeed = 8f;
    }
 
+   //LEVAIN
    private void Feeding() {
       if (Input.GetKeyDown(KeyCode.E)) {
-         Levain.Feeding(currentCollectibeType);
+         levain.Feeding(currentCollectibeType);
       }
    }
 
-   private void Collecting() {
+   private void CollectingLevain() {
       if (Input.GetKeyDown(KeyCode.E)) {
-         Levain.Collecting();
+         levain.Collecting();
       }
    }
 
+   //DOUGH
+   private void AddIngredient() {
+      if (Input.GetKeyDown(KeyCode.E)) {
+         doughMaker.AddIngredient(currentCollectibeType);
+      }
+   }
+
+   private void CollectingDough() {
+      if (Input.GetKeyDown(KeyCode.E)) {
+         doughMaker.Collecting();
+      }
+   }
+
+   //BREAD
+   private void PutDoughHoven() {
+      if (Input.GetKeyDown(KeyCode.E)) {
+         hoven.PutDoughHoven();
+      }
+   }
+
+   private void CollectingBread() {
+      if (Input.GetKeyDown(KeyCode.E)) {
+         hoven.Collecting();
+      }
+   }
+
+   //COUNTER
+   private void SellBread() {
+      if (Input.GetKeyDown(KeyCode.E)) {
+         counter.Sell();
+      }
+   }
+
+   //OTHER
    public void Consume() {
       Destroy(Holding);
       LetGo();

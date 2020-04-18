@@ -7,17 +7,31 @@ using UnityEngine.UI;
 public class HUDScript : MonoBehaviour {
    private bool panelOpen;
 
-   [Header("Pick Up Panels")]
+   [Header("Pick Up Panel")]
    public GameObject PickUpPanel;
    public TextMeshProUGUI pickUpChangingText;
 
-   [Header("Dispenser Panels")]
+   [Header("Dispenser Panel")]
    public GameObject DispenserPanel;
    public TextMeshProUGUI dispenserChangingText;
 
-   [Header("Levain Panels")]
+   [Header("Levain Panel")]
    public GameObject LevainPanel;
    public TextMeshProUGUI levainChangingText;
+
+   [Header("Dough Maker Panel")]
+   public GameObject DoughMakerPanel;
+   public TextMeshProUGUI doughMakerChangingText;
+
+   [Header("Hoven Panel")]
+   public GameObject HovenPanel;
+   public TextMeshProUGUI hovenChangingText;
+
+   [Header("Money Panel")]
+   public TextMeshProUGUI moneyChangingText;
+
+   [Header("Counter Panel")]
+   public GameObject CounterPanel;
 
    [Header("Sliders")]
    public Slider slider;
@@ -61,11 +75,15 @@ public class HUDScript : MonoBehaviour {
       slider.value = value;
    }
 
+   public void UpdateMoney(float value) {
+      moneyChangingText.text = value.ToString() + " €";
+   }
+
    public void ChangeWaterNeed(int need) {
       waterNeed.text = need.ToString();
    }
 
-   public void ChangeWheatNeed(int need) {
+   public void ChangeFloorNeed(int need) {
       wheatNeed.text = need.ToString();
    }
 
@@ -94,11 +112,37 @@ public class HUDScript : MonoBehaviour {
       }
    }
 
+   public void OpenBreadMakerPanel(string text) {
+      if (!panelOpen) {
+         panelOpen = true;
+         doughMakerChangingText.text = text;
+         DoughMakerPanel.SetActive(true);
+      }
+   }
+
+   public void OpenHovenMakerPanel(string text) {
+      if (!panelOpen) {
+         panelOpen = true;
+         hovenChangingText.text = text;
+         HovenPanel.SetActive(true);
+      }
+   }
+
+   public void OpenCounterPanel() {
+      if (!panelOpen) {
+         panelOpen = true;
+         CounterPanel.SetActive(true);
+      }
+   }
+
    public void ClosePanels() {
       panelOpen = false;
       PickUpPanel.SetActive(false);
       DispenserPanel.SetActive(false);
       LevainPanel.SetActive(false);
+      DoughMakerPanel.SetActive(false);
+      HovenPanel.SetActive(false);
+      CounterPanel.SetActive(false);
    }
 
 }

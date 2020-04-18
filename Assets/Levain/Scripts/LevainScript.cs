@@ -18,7 +18,7 @@ public class LevainScript : MonoBehaviour {
    public Mood currentMood = Mood.Happy;
    public float healingPoint = 5f;
    public int WaterNeed;
-   public int WheatNeed;
+   public int FloorNeed;
 
    //HUD
    public HUDScript Hud;
@@ -60,19 +60,19 @@ public class LevainScript : MonoBehaviour {
    public void RandomNeed(Mood currentMood){
       Debug.Log((int) currentMood);
       int NewWaterNeed = Random.Range(1, 2) * ((int) currentMood + 1);
-      int NewWheatNeed = Random.Range(1, 2) * ((int) currentMood + 1);
+      int NewFloorNeed = Random.Range(1, 2) * ((int) currentMood + 1);
 
       WaterNeed += NewWaterNeed;
-      WheatNeed += NewWheatNeed;
+      FloorNeed += NewFloorNeed;
 
       Hud.ChangeWaterNeed(WaterNeed);
-      Hud.ChangeWheatNeed(WheatNeed);
+      Hud.ChangeFloorNeed(FloorNeed);
 
    }
 
    public void Feeding(CollectibleType type){
-      if(type == CollectibleType.Flour && WheatNeed > 0) {
-         WheatNeed -= 1;
+      if(type == CollectibleType.Flour && FloorNeed > 0) {
+         FloorNeed -= 1;
          if(currentLifePoint < maxLifePoint){
             float newlifeAmount = currentLifePoint + healingPoint;
             if(newlifeAmount > maxLifePoint){
@@ -82,7 +82,7 @@ public class LevainScript : MonoBehaviour {
                currentLifePoint = newlifeAmount;
             }
          }
-         Hud.ChangeWheatNeed(WheatNeed);
+         Hud.ChangeFloorNeed(FloorNeed);
          playerController.Consume();
          
       }
@@ -110,6 +110,8 @@ public class LevainScript : MonoBehaviour {
       GameObject newCollectible = Instantiate(collectibleLevain, pos, Quaternion.identity);
       newCollectible.GetComponent<Rigidbody>().AddForce(0, 0, -5f, ForceMode.Impulse);
       newCollectible.GetComponent<Collectible>().type = CollectibleType.Levain;
+
+      currentLifePoint -= 10f;
 
    }
 }
