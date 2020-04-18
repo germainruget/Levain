@@ -7,8 +7,9 @@ enum TransitionParameter {
    Holding,
 }
 
-public class PlayerMovement : MonoBehaviour {
+public class PlayerController : MonoBehaviour {
    public GameObject Player;
+   public LevainScript Levain;
 
    private PlayerInputActions inputActions;
    private Vector2 movementInput;
@@ -25,12 +26,24 @@ public class PlayerMovement : MonoBehaviour {
    [Header("Picking Up")]
    public bool canPickUp;
    public GameObject Pickable;
+   [Header("Order")]
+   public bool canOrder;
+   public GameObject Dispenser;
    [Header("Holding")]
    public bool isHolding;
+   public CollectibleType currentCollectibeType;
    public GameObject Holding;
+   [Header("Feeding")]
+   public bool canFeed;
+   public bool canCollect;
+
+   //HUD
+   public HUDScript Hud;
 
    void Start() {
       Player = gameObject;
+      Levain = GameObject.FindObjectOfType<LevainScript>();
+      Hud = GameObject.FindObjectOfType<HUDScript>();
    }
 
    void Awake() {
@@ -41,8 +54,17 @@ public class PlayerMovement : MonoBehaviour {
    }
 
    void Update() {
-      if (canPickUp && !isHolding)PickUp();
-      else if (isHolding)PutDown();
+      if (canPickUp && !isHolding) {
+         PickUp();
+      } else if (!canFeed && isHolding) {
+         PutDown();
+      } else if (canFeed) {
+         Feeding();
+      } else if (canOrder && Input.GetKeyDown(KeyCode.E)) {
+         Dispenser.GetComponent<Dispenser>().Dispense();
+      } else if (canCollect) {
+         Collecting();
+      }
    }
 
    void FixedUpdate() {
@@ -94,21 +116,50 @@ public class PlayerMovement : MonoBehaviour {
    }
 
    private void OnTriggerEnter(Collider other) {
-      Collectibles collectible = other.GetComponent<Collectibles>();
+      Collectible collectible = other.GetComponent<Collectible>();
+      LevainScript levain = other.GetComponent<LevainScript>();
+      Dispenser dispenser = other.GetComponent<Dispenser>();
+
+      if (levain != null) {
+         if (isHolding) {
+            canFeed = true;
+            Hud.OpenLevainPanel("Press E to feed");
+         } else {
+            Hud.OpenLevainPanel("Press E to collect");
+            canCollect = true;
+         }
+      }
+
       if (collectible != null) {
          Pickable = collectible.gameObject;
          canPickUp = true;
+         Hud.OpenPickUpPanel(collectible.type.ToString());
       }
+
+      if (dispenser != null) {
+         Dispenser = dispenser.gameObject;
+         canOrder = true;
+         Hud.OpenDispenserPanel(dispenser.type.ToString());
+      }
+
    }
 
    private void OnTriggerExit(Collider other) {
       Pickable = null;
       canPickUp = false;
+
+      Dispenser = null;
+      canOrder = false;
+
+      canFeed = false;
+      canCollect = false;
+      Hud.ClosePanels();
    }
 
    private void PickUp() {
       if (Input.GetKeyDown(KeyCode.E) && Pickable != null) {
          Holding = Pickable;
+         currentCollectibeType = Pickable.GetComponent<Collectible>().type;
          Pickable.SetActive(false);
          isHolding = true;
          animator.SetBool(TransitionParameter.Holding.ToString(), true);
@@ -116,6 +167,7 @@ public class PlayerMovement : MonoBehaviour {
          //Remove pickable
          Pickable = null;
          canPickUp = false;
+         Hud.ClosePanels();
 
          //Slow Down player
          moveSpeed = 4f;
@@ -123,19 +175,42 @@ public class PlayerMovement : MonoBehaviour {
    }
 
    private void PutDown() {
-      if (Input.GetKeyDown(KeyCode.E) && Holding != null) {
+      if (Input.GetKeyDown(KeyCode.E) && Holding != null && !canFeed) {
          //Place Object
          Holding.transform.position = ((Player.transform.forward * 1f) + Player.transform.position) + new Vector3(0, 2, 0);
          Holding.SetActive(true);
+         Holding.GetComponent<Rigidbody>().AddForce(Player.transform.forward * 1f, ForceMode.Impulse);
 
-         //Let Go
-         Holding = null;
-         isHolding = false;
-         animator.SetBool(TransitionParameter.Holding.ToString(), false);
-
-         //Put back player speed;
-         moveSpeed = 8f;
+         LetGo();
 
       }
+   }
+
+   private void LetGo() {
+      //Let Go
+      Holding = null;
+      currentCollectibeType = CollectibleType.None;
+      isHolding = false;
+      animator.SetBool(TransitionParameter.Holding.ToString(), false);
+
+      //Put back player speed;
+      moveSpeed = 8f;
+   }
+
+   private void Feeding() {
+      if (Input.GetKeyDown(KeyCode.E)) {
+         Levain.Feeding(currentCollectibeType);
+      }
+   }
+
+   private void Collecting() {
+      if (Input.GetKeyDown(KeyCode.E)) {
+         Levain.Collecting();
+      }
+   }
+
+   public void Consume() {
+      Destroy(Holding);
+      LetGo();
    }
 }
