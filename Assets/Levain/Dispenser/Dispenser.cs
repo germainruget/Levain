@@ -5,19 +5,19 @@ using UnityEngine;
 public class Dispenser : MonoBehaviour {
 
    public CollectibleType type;
-   public List<Material> materials = new List<Material>();
+   // public List<Material> materials = new List<Material>();
    public GameObject collectible;
-   private MeshRenderer mesh;
+   // private MeshRenderer mesh;
 
    // Start is called before the first frame update
    void Start() {
 
-      mesh = gameObject.GetComponent<MeshRenderer>();
-      if (type == CollectibleType.Flour) {
-         mesh.material = materials[0];
-      } else if (type == CollectibleType.Water) {
-         mesh.material = materials[1];
-      }
+      // mesh = gameObject.GetComponent<MeshRenderer>();
+      // if (type == CollectibleType.Flour) {
+      //    mesh.material = materials[0];
+      // } else if (type == CollectibleType.Water) {
+      //    mesh.material = materials[1];
+      // }
    }
 
    // Update is called once per frame

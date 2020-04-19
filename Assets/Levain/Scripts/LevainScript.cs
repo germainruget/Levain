@@ -32,10 +32,10 @@ public class LevainScript : MonoBehaviour {
 
    // Update is called once per frame
    void Update() {
-      //Random need at each mood
+      //Random need at each bader mood
       if(mood != currentMood){
+         if((int) mood < (int) currentMood) RandomNeed(currentMood);
          mood = currentMood;
-         RandomNeed(mood);
       }
 
       //Life point over time

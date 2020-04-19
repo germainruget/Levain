@@ -19,7 +19,11 @@ public class PlayerController : MonoBehaviour {
    private bool IsMoving;
 
    [SerializeField]
-   private float moveSpeed = 10f;
+   private float normalSpeed = 8f;
+   [SerializeField]
+   private float slowSpeed = 6f;
+
+   private float moveSpeed;
 
    private Vector3 inputDirection;
    private Vector3 moveVector;
@@ -59,6 +63,7 @@ public class PlayerController : MonoBehaviour {
       hoven = GameObject.FindObjectOfType<Hoven>();
       counter = GameObject.FindObjectOfType<Counter>();
       Hud = GameObject.FindObjectOfType<HUDScript>();
+      moveSpeed = normalSpeed;
    }
 
    void Awake() {
@@ -239,7 +244,7 @@ public class PlayerController : MonoBehaviour {
          Hud.ClosePanels();
 
          //Slow Down player
-         moveSpeed = 4f;
+         moveSpeed = slowSpeed;
       }
    }
 
@@ -263,7 +268,7 @@ public class PlayerController : MonoBehaviour {
       animator.SetBool(TransitionParameter.Holding.ToString(), false);
 
       //Put back player speed;
-      moveSpeed = 8f;
+      moveSpeed = normalSpeed;
    }
 
    //LEVAIN
