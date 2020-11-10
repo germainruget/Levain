@@ -17,10 +17,12 @@ public class Collectible : MonoBehaviour {
    // private MeshRenderer mesh;
    public List<GameObject> Item = new List<GameObject>();
    public GameObject newCollectible;
+   private AudioManager audioManager;
 
    // Start is called before the first frame update
    void Start() {
-      // mesh = gameObject.GetComponent<MeshRenderer>();
+      // audioManager = GameObject.FindObjectOfType<AudioManager>();
+
       if (type == CollectibleType.Flour) {
          // mesh.material = materials[0];
          newCollectible = Instantiate(Item[0], transform.position, Quaternion.identity);
@@ -41,8 +43,13 @@ public class Collectible : MonoBehaviour {
       newCollectible.transform.parent = this.gameObject.transform;
    }
 
-   // Update is called once per frame
-   void Update() {
-
+   private void OnCollisionEnter(Collision other) {
+      if( type == CollectibleType.Flour || type == CollectibleType.Dough || type == CollectibleType.Bread){
+         GameObject.FindObjectOfType<AudioManager>().PlaySound(CollectibleType.None, "Fall Flour");
+      }
+      else{
+         GameObject.FindObjectOfType<AudioManager>().PlaySound(CollectibleType.None, "Fall Glass");
+      }
    }
+
 }

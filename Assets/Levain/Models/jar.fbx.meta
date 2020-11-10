@@ -3,7 +3,17 @@ guid: 4e02f0ab2223bd4459dead44ec2fdaab
 ModelImporter:
   serializedVersion: 19300
   internalIDToNameTable: []
-  externalObjects: {}
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Levain
+    second: {fileID: 2100000, guid: ada8377d4b8636f4b9d6de494264582f, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Material
+    second: {fileID: 2100000, guid: c4bf3ddf0dfb1d44083a5432e99abb75, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0

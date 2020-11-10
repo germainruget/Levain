@@ -1,0 +1,109 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &6144278379526280472
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6144278379526280474}
+  - component: {fileID: 6144278379526280473}
+  m_Layer: 0
+  m_Name: AudioManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6144278379526280474
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6144278379526280472}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 3.3849928, y: -3.5334458, z: 20.558882}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6144278379526280473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6144278379526280472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a11d7f7f873944d49ac4934d20412751, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sounds:
+  - name: Water
+    type: 2
+    clip: {fileID: 8300000, guid: 4e4103301f6d34543b14a3da5a0e9b37, type: 3}
+    volume: 1
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: Flour
+    type: 1
+    clip: {fileID: 8300000, guid: 261b927408f800b4b931f8be5a7db2fc, type: 3}
+    volume: 1
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: Levain
+    type: 3
+    clip: {fileID: 8300000, guid: ab535a674376a1a498c00495ee31a23f, type: 3}
+    volume: 1
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: Cash Register
+    type: 5
+    clip: {fileID: 8300000, guid: 5c28e2ea803ba2b4a8a5a5057539b69c, type: 3}
+    volume: 1
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: Cash Out
+    type: 0
+    clip: {fileID: 8300000, guid: 35a63b902de1eff4e82958c2ff18b550, type: 3}
+    volume: 1
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: Dough
+    type: 4
+    clip: {fileID: 8300000, guid: d974afe1b9caddc48b50d3955d0032e6, type: 3}
+    volume: 0.293
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: Fall Glass
+    type: 0
+    clip: {fileID: 8300000, guid: 25d03b674d8b6c54f8794f42e2b3407e, type: 3}
+    volume: 0.293
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: Fall Flour
+    type: 0
+    clip: {fileID: 8300000, guid: fbcf174362a67ff4892d3da03c6ebb81, type: 3}
+    volume: 0.293
+    pitch: 1
+    loop: 0
+    source: {fileID: 0}
+  - name: MainTheme
+    type: 0
+    clip: {fileID: 8300000, guid: 9520780f80211614f9189268e0110857, type: 3}
+    volume: 0.253
+    pitch: 1
+    loop: 1
+    source: {fileID: 0}

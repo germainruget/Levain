@@ -1,10 +1,14 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 enum TransitionParameter {
    Move,
    Holding,
+   Pouring,
+   GameOver,
+   GameWin
 }
 
 public class PlayerController : MonoBehaviour {
@@ -30,6 +34,10 @@ public class PlayerController : MonoBehaviour {
    private Quaternion currentRotation;
    private Animator animator;
 
+   [Header("Timer")]
+   public float maxTimer = 60f;
+   public float currentTimer;
+
    [Header("Money")]
    public float money = 100.0f;
    [Header("Picking Up")]
@@ -39,9 +47,12 @@ public class PlayerController : MonoBehaviour {
    public bool canOrder;
    public GameObject Dispenser;
    [Header("Holding")]
+   public GameObject HoldingPos;
    public bool isHolding;
    public CollectibleType currentCollectibeType;
    public GameObject Holding;
+   private HoldingPos holdPos;
+
    [Header("Feeding")]
    public bool canFeed;
    public bool canCollect;
@@ -52,18 +63,28 @@ public class PlayerController : MonoBehaviour {
    public bool canCollectBread;
    [Header("Counter")]
    public bool canSell;
+   [Header("Audio")]
+   public AudioManager audioManager;
+
+   public bool isPourring;
+   private bool isGameOver;
 
    //HUD
    public HUDScript Hud;
 
    void Start() {
+      //Pause Game on Start
+      Time.timeScale = 0;
+
       player = gameObject;
       levain = GameObject.FindObjectOfType<LevainScript>();
       doughMaker = GameObject.FindObjectOfType<DoughMaker>();
       hoven = GameObject.FindObjectOfType<Hoven>();
       counter = GameObject.FindObjectOfType<Counter>();
       Hud = GameObject.FindObjectOfType<HUDScript>();
+      audioManager = GameObject.FindObjectOfType<AudioManager>();
       moveSpeed = normalSpeed;
+      currentTimer = 0;
    }
 
    void Awake() {
@@ -80,7 +101,7 @@ public class PlayerController : MonoBehaviour {
          PutDown();
       } else if (canFeed) {
          Feeding();
-      } else if (canOrder && Input.GetKeyDown(KeyCode.E)) {
+      } else if (canOrder && Input.GetKeyDown(KeyCode.E) && money > 0) {
          Dispenser.GetComponent<Dispenser>().Dispense();
       } else if (canCollect) {
          CollectingLevain();
@@ -95,6 +116,34 @@ public class PlayerController : MonoBehaviour {
       } else if (canSell) {
          SellBread();
       }
+
+      //LEVAIN LIFE POINTS
+      if (levain.currentLifePoint <= 0) {
+         GameOver();
+      }
+
+      //TIMER
+      if (currentTimer <= maxTimer) {
+         currentTimer += Time.deltaTime;
+         Hud.UpdateTimer(currentTimer / maxTimer);
+      } else {
+         GameWin();
+      }
+
+      //TUTORIAL
+      if (!isPourring && !isGameOver) {
+         if (Input.GetKeyDown(KeyCode.F)) {
+            Hud.ShowTutorial();
+         }
+         if (Input.GetKeyUp(KeyCode.F)) {
+            Hud.HideTutorial();
+         }
+      }
+
+      if (Input.GetKeyDown(KeyCode.Escape)) {
+         Hud.ShowPauseMenu();
+      }
+
    }
 
    void FixedUpdate() {
@@ -112,14 +161,14 @@ public class PlayerController : MonoBehaviour {
 
       Vector3 desiredDirection = camForward * inputDirection.z + camRight * inputDirection.x;
 
-      if (Mathf.Abs(h) > 0 || Mathf.Abs(v) > 0) {
+      if ((Mathf.Abs(h) > 0 || Mathf.Abs(v) > 0) && !isPourring && !isGameOver) {
          Move(desiredDirection);
+         Turn(desiredDirection);
          animator.SetBool(TransitionParameter.Move.ToString(), true);
       } else {
          animator.SetBool(TransitionParameter.Move.ToString(), false);
       }
 
-      Turn(desiredDirection);
    }
 
    void Move(Vector3 desiredDirection) {
@@ -145,7 +194,7 @@ public class PlayerController : MonoBehaviour {
       inputActions.Disable();
    }
 
-   private void OnTriggerEnter(Collider other) {
+   private void OnTriggerStay(Collider other) {
       Collectible collectibleCol = other.GetComponent<Collectible>();
       LevainScript levainCol = other.GetComponent<LevainScript>();
       DoughMaker doughMakerCol = other.GetComponent<DoughMaker>();
@@ -155,7 +204,7 @@ public class PlayerController : MonoBehaviour {
 
       //LEVAIN
       if (levainCol != null) {
-         if (isHolding) {
+         if (isHolding && !isPourring) {
             canFeed = true;
             Hud.OpenLevainPanel("Press E to feed " + currentCollectibeType);
          } else {
@@ -166,18 +215,18 @@ public class PlayerController : MonoBehaviour {
 
       //DOUGH
       if (doughMakerCol != null) {
-         if (isHolding) {
+         if (isHolding && !isPourring) {
             canAddIngredient = true;
-            Hud.OpenBreadMakerPanel("Press E to add " + currentCollectibeType);
+            Hud.OpenDoughMakerPanel("Press E to add " + currentCollectibeType);
          } else {
-            Hud.OpenBreadMakerPanel("Press E to collect dough");
+            Hud.OpenDoughMakerPanel("Press E to collect dough");
             canCollectDough = true;
          }
       }
 
       //HOVEN
       if (hovenCol != null) {
-         if (isHolding) {
+         if (isHolding && !isPourring && currentCollectibeType == CollectibleType.Dough) {
             canPutDoughHoven = true;
             Hud.OpenHovenMakerPanel("Press E to add bread");
          } else {
@@ -188,7 +237,7 @@ public class PlayerController : MonoBehaviour {
 
       //COUNTER
       if (counterCol != null) {
-         if (isHolding) {
+         if (isHolding && !isPourring) {
             canSell = true;
             Hud.OpenCounterPanel();
          }
@@ -198,7 +247,7 @@ public class PlayerController : MonoBehaviour {
       if (collectibleCol != null) {
          Pickable = collectibleCol.gameObject;
          canPickUp = true;
-         Hud.OpenPickUpPanel(collectibleCol.type.ToString());
+         Hud.OpenPickUpPanel(collectibleCol.type.ToString(), collectibleCol.gameObject);
       }
 
       //DISPENSER
@@ -235,6 +284,11 @@ public class PlayerController : MonoBehaviour {
          Holding = Pickable;
          currentCollectibeType = Pickable.GetComponent<Collectible>().type;
          Pickable.SetActive(false);
+
+         HoldingPos[] holdingObjects = HoldingPos.GetComponent<HoldingType>().holdingObjects;
+         holdPos = Array.Find(holdingObjects, hold => hold.type == currentCollectibeType);
+         holdPos.obj.SetActive(true);
+
          isHolding = true;
          animator.SetBool(TransitionParameter.Holding.ToString(), true);
 
@@ -250,10 +304,10 @@ public class PlayerController : MonoBehaviour {
 
    private void PutDown() {
       if (Input.GetKeyDown(KeyCode.E) && Holding != null && !canFeed) {
-         //Place Object
+         holdPos.obj.SetActive(false);
          Holding.transform.position = ((player.transform.forward * 1f) + player.transform.position) + new Vector3(0, 2, 0);
          Holding.SetActive(true);
-         Holding.GetComponent<Rigidbody>().AddForce(player.transform.forward * 1f, ForceMode.Impulse);
+         Holding.GetComponent<Rigidbody>().AddForce(player.transform.forward * 3f, ForceMode.Impulse);
 
          LetGo();
 
@@ -264,8 +318,14 @@ public class PlayerController : MonoBehaviour {
       //Let Go
       Holding = null;
       currentCollectibeType = CollectibleType.None;
+
+      holdPos.obj.SetActive(false);
+
       isHolding = false;
+      isPourring = false;
+
       animator.SetBool(TransitionParameter.Holding.ToString(), false);
+      animator.SetBool(TransitionParameter.Pouring.ToString(), false);
 
       //Put back player speed;
       moveSpeed = normalSpeed;
@@ -301,6 +361,7 @@ public class PlayerController : MonoBehaviour {
    private void PutDoughHoven() {
       if (Input.GetKeyDown(KeyCode.E)) {
          hoven.PutDoughHoven();
+         canPutDoughHoven = false;
       }
    }
 
@@ -313,13 +374,42 @@ public class PlayerController : MonoBehaviour {
    //COUNTER
    private void SellBread() {
       if (Input.GetKeyDown(KeyCode.E)) {
+         canSell = false;
          counter.Sell();
       }
    }
 
-   //OTHER
-   public void Consume() {
+   public IEnumerator Consume() {
+      isPourring = true;
+      animator.SetBool(TransitionParameter.Pouring.ToString(), true);
+      GameObject.FindObjectOfType<AudioManager>().PlaySound(currentCollectibeType);
+
+      currentCollectibeType = CollectibleType.None;
+
       Destroy(Holding);
+
+      yield return new WaitForSeconds(1.5f);
+      Hud.ClosePanels();
       LetGo();
+   }
+
+   private void GameOver() {
+      Hud.ShowLoseMenu();
+      isGameOver = true;
+      animator.SetBool(TransitionParameter.Pouring.ToString(), false);
+      animator.SetBool(TransitionParameter.Move.ToString(), false);
+      animator.SetBool(TransitionParameter.Holding.ToString(), false);
+
+      animator.SetBool(TransitionParameter.GameOver.ToString(), true);
+   }
+
+   private void GameWin() {
+      Hud.ShowWinMenu();
+      isGameOver = true;
+      animator.SetBool(TransitionParameter.Pouring.ToString(), false);
+      animator.SetBool(TransitionParameter.Move.ToString(), false);
+      animator.SetBool(TransitionParameter.Holding.ToString(), false);
+
+      animator.SetBool(TransitionParameter.GameWin.ToString(), true);
    }
 }

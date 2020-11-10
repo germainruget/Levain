@@ -5,30 +5,28 @@ using UnityEngine;
 public class Dispenser : MonoBehaviour {
 
    public CollectibleType type;
-   // public List<Material> materials = new List<Material>();
    public GameObject collectible;
-   // private MeshRenderer mesh;
+   private AudioManager audioManager;
+   private PlayerController playerController;
+   private HUDScript Hud;
 
-   // Start is called before the first frame update
    void Start() {
-
-      // mesh = gameObject.GetComponent<MeshRenderer>();
-      // if (type == CollectibleType.Flour) {
-      //    mesh.material = materials[0];
-      // } else if (type == CollectibleType.Water) {
-      //    mesh.material = materials[1];
-      // }
+      audioManager = GameObject.FindObjectOfType<AudioManager>();
+      playerController = GameObject.FindObjectOfType<PlayerController>();
+      Hud = GameObject.FindObjectOfType<HUDScript>();
    }
 
-   // Update is called once per frame
    void Update() {
 
    }
 
-   public void Dispense(){
+   public void Dispense() {
+      GameObject.FindObjectOfType<AudioManager>().PlaySound(CollectibleType.None, "Cash Out");
+      playerController.money -= 2f;
+      Hud.UpdateMoney(playerController.money);
       Vector3 pos = ((gameObject.transform.right * 2f) + gameObject.transform.position) + new Vector3(0, 1, 0);
       GameObject newCollectible = Instantiate(collectible, pos, Quaternion.identity);
-      newCollectible.GetComponent<Rigidbody>().AddForce(0, 0, -5f, ForceMode.Impulse);
+      newCollectible.GetComponent<Rigidbody>().AddForce(gameObject.transform.right * 3f, ForceMode.Impulse);
       newCollectible.GetComponent<Collectible>().type = type;
    }
 }

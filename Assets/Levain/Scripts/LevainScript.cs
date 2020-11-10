@@ -25,6 +25,8 @@ public class LevainScript : MonoBehaviour {
 
    // Start is called before the first frame update
    void Start() {
+      playerController = GameObject.FindObjectOfType<PlayerController>();
+      
       currentLifePoint = maxLifePoint;
       mood = currentMood;
       RandomNeed(mood);
@@ -83,7 +85,7 @@ public class LevainScript : MonoBehaviour {
             }
          }
          Hud.ChangeFloorNeed(FloorNeed);
-         playerController.Consume();
+         StartCoroutine(playerController.Consume());
          
       }
       if(type == CollectibleType.Water && WaterNeed > 0){
@@ -98,7 +100,7 @@ public class LevainScript : MonoBehaviour {
             }
          }
          Hud.ChangeWaterNeed(WaterNeed);
-         playerController.Consume();
+         StartCoroutine(playerController.Consume());
       }
    }
 
@@ -108,7 +110,7 @@ public class LevainScript : MonoBehaviour {
       // }
       Vector3 pos = ((gameObject.transform.right * 2f) + gameObject.transform.position) + new Vector3(0, 1, 0);
       GameObject newCollectible = Instantiate(collectibleLevain, pos, Quaternion.identity);
-      newCollectible.GetComponent<Rigidbody>().AddForce(0, 0, -5f, ForceMode.Impulse);
+      newCollectible.GetComponent<Rigidbody>().AddForce(gameObject.transform.right * 3f, ForceMode.Impulse);
       newCollectible.GetComponent<Collectible>().type = CollectibleType.Levain;
 
       currentLifePoint -= 10f;
