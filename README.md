@@ -3,6 +3,7 @@
 This game was made in 72h by me during the [ludum dare 46](https://ldjam.com/events/ludum-dare/46/levain-my-needy-friend)  comptetition. Everyting was made during this time, from the code to the assets (except the music)
 ### Play online
 [itch.io](https://taiteilijan.itch.io/levain)
+
 [Game jam link](https://ldjam.com/events/ludum-dare/46/levain-my-needy-friend)
 ### Story
 Your Grand Father need some rest, he can’t keep up with the bakery, espacially with Levain, the prodigy of the bakery…
